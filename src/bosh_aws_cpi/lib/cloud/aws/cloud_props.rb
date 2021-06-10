@@ -63,13 +63,14 @@ module Bosh::AwsCloud
   end
 
   class DiskCloudProps
-    attr_reader :type, :iops, :encrypted, :kms_key_arn
+    attr_reader :type, :iops, :throughput, :encrypted, :kms_key_arn
 
     # @param [Hash] cloud_properties
     # @param [Bosh::AwsCloud::Config] global_config
     def initialize(cloud_properties, global_config)
       @type = cloud_properties['type']
       @iops = cloud_properties['iops']
+      @throughput = cloud_properties['throughput']
 
       @encrypted = global_config.aws.encrypted
       @encrypted = !!cloud_properties['encrypted'] if cloud_properties.key?('encrypted')

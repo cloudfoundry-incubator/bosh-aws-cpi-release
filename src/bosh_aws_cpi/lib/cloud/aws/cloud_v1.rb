@@ -203,6 +203,7 @@ module Bosh::AwsCloud
           size: size,
           type: props.type,
           iops: props.iops,
+          throughput: props.throughput,
           az: @az_selector.select_availability_zone(instance_id),
           encrypted: props.encrypted,
           kms_key_arn: props.kms_key_arn

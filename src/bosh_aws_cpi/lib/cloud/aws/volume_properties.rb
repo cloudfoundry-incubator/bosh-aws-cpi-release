@@ -9,6 +9,7 @@ module Bosh
         @size = options[:size] || 0
         @type = options[:type] || 'gp2'
         @iops = options[:iops]
+        @throughput = options[:throughput]
         @az = options[:az]
         @kms_key_arn = options[:kms_key_arn]
         @encrypted = options[:encrypted] || false
@@ -39,6 +40,7 @@ module Bosh
         }
 
         output[:iops] = @iops if @iops
+        output[:throughput] = @throughput if @throughput
         output[:kms_key_id] = @kms_key_arn if @kms_key_arn
         unless @tags.empty?
           output[:tag_specifications] = [
