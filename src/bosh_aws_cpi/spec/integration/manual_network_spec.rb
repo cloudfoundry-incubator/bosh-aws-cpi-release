@@ -519,6 +519,20 @@ describe Bosh::AwsCloud::CloudV1 do
       end
     end
 
+    it 'can resize a disk' do
+      begin
+        volume_id = @cpi.create_disk(2048, {})
+        @cpi.resize_disk(volume_id, 4096)
+        expect(volume_id).not_to be_nil
+        expect(@cpi.has_disk?(volume_id)).to be(true)
+
+        volume = @cpi.ec2_resource.volume(volume_id)
+        expect(volume.size).to eq(4)
+      ensure
+        @cpi.delete_disk(volume_id) if volume_id
+      end
+    end
+
     context 'when ephemeral_disk properties are specified' do
       let(:vm_type) do
         {

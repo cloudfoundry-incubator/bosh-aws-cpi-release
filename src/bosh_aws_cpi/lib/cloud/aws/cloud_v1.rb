@@ -233,6 +233,12 @@ module Bosh::AwsCloud
       end
     end
 
+    def resize_disk(disk_id, new_size)
+      with_thread_name("resize_disk(#{disk_id}, #{new_size})") do
+        @cloud_core.resize_disk(disk_id, new_size)
+      end
+    end
+
     # Attach an EBS volume to an EC2 instance
     # @param [String] instance_id EC2 instance id of the virtual machine to attach the disk to
     # @param [String] disk_id EBS volume id of the disk to attach

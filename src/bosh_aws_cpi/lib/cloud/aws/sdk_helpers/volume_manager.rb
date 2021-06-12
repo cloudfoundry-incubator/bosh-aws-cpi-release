@@ -16,6 +16,14 @@ module Bosh::AwsCloud
       volume
     end
 
+    def extend_ebs_volume(volume, new_size)
+      resp = @ec2_client.modify_volume(volume_id: volume.id, size: new_size)
+
+      volume_modification = SdkHelpers::VolumeModification.new(volume, resp.volume_modification, @ec2_client)
+      @logger.info("Extending volume `#{volume.id}'")
+      ResourceWait.for_volume_modification(volume_modification: volume_modification, state: 'completed')
+    end
+
     def delete_ebs_volume(volume, fast_path_delete = false)
       @logger.info("Deleting volume `#{volume.id}'")
 

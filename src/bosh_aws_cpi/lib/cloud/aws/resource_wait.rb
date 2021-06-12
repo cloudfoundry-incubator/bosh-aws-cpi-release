@@ -72,6 +72,27 @@ module Bosh::AwsCloud
       raise unless target_state == 'deleted'
     end
 
+    def self.for_volume_modification(args)
+      volume_modification = args.fetch(:volume_modification) { raise ArgumentError, 'volume_modification object required' }
+      target_state = args.fetch(:state) { raise ArgumentError, 'state symbol required' }
+      valid_states = ['modifying', 'optimizing', 'completed', 'failed']
+      validate_states(valid_states, target_state)
+
+      ignored_errors = []
+      if target_state == 'completed'
+        ignored_errors << Aws::EC2::Errors::InvalidVolumeNotFound
+        ignored_errors << Aws::EC2::Errors::ResourceNotFound
+      end
+      description = "volume modification of %s current state %s" % [volume_modification.volume.id, volume_modification.state]
+
+      new.for_resource(resource: volume_modification, errors: ignored_errors, target_state: target_state, description: description) do |current_state|
+        current_state == target_state
+      end
+
+    rescue Aws::EC2::Errors::InvalidVolumeNotFound, Aws::EC2::Errors::ResourceNotFound
+      raise unless target_state == 'failed'
+    end
+
     def self.for_snapshot(args)
       snapshot = args.fetch(:snapshot) { raise ArgumentError, 'snapshot object required' }
       target_state = args.fetch(:state) { raise ArgumentError, 'state symbol required' }

@@ -160,6 +160,29 @@ module Bosh::AwsCloud
       logger.info("Detached `#{disk_id}' from `#{instance_id}'")
     end
 
+
+    def resize_disk(disk_id, new_size)
+      new_size_gib = mib_to_gib(new_size)
+      @logger.info("Resizing volume `#{disk_id}'...")
+      volume = @ec2_resource.volume(disk_id)
+      cloud_error("Cannot resize volume because volume with #{disk_id} not found") unless volume
+      actual_size_gib = volume.size
+      if actual_size_gib == new_size_gib
+        @logger.info("Skipping resize of disk #{disk_id} because current value #{actual_size_gib} GiB" \
+                     " is equal new value #{new_size_gib} GiB")
+      elsif actual_size_gib > new_size_gib
+        cloud_error("Cannot resize volume to a smaller size from #{actual_size_gib} GiB to #{new_size_gib} GiB")
+      else
+        attachments = volume.attachments
+        unless attachments.empty?
+          cloud_error("Cannot resize volume '#{disk_id}' it still has #{attachments.size} attachment(s)")
+        end
+        @volume_manager.extend_ebs_volume(volume, new_size_gib)
+        @logger.info("Disk #{disk_id} resized from #{actual_size_gib} GiB to #{new_size_gib} GiB")
+      end
+    end
+
+
     def has_disk?(disk_id)
       with_thread_name("has_disk?(#{disk_id})") do
         @logger.info("Check the presence of disk with id `#{disk_id}'...")
@@ -171,6 +194,10 @@ module Bosh::AwsCloud
         end
         true
       end
+    end
+
+    def mib_to_gib(size)
+      (size / 1024.0).ceil
     end
   end
 end
